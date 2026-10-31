@@ -127,6 +127,7 @@ func main() {
 	var j int = 10
 	var s string = strconv.Itoa(j)
 	fmt.Printf("%q", s) // yields "10"
+
 	// string -> int with Atoi (returns int and error if any)
 	var k string = "100"
 	var l string = "299abc" // would throw an eror for invalid type conversion
@@ -161,18 +162,30 @@ There are five groups of operators:
 
 #### Control Flow
 - if, else, and else if statement
-- switch case statement
-- Usage:
 ```go
 // Basic syntax
 if (condition_0) { // Parentheses around conditions are optional
     // exec if condition == True
 } else if (condition_1) {
-    // exec if condition_1 == True
+	// exec if condition_1 == True
 	// can have n else if statements
 } else { 
 	// exec if above condition_n == False
 }
-
+```
+- switch case statement
+```go
+// Basic syntax
+switch (expression) {
+	case value_1:
+		// exec if value_1
+	case value_2:
+		// exec if value_2
+		fallthrough // 
+	case value_n:
+		// exec if value_n
+	default:
+		// exec when no match is found
+}
 
 ```
