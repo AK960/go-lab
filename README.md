@@ -370,6 +370,8 @@ Naming convention:
 
 **Function parameters** are the names listed in the function's definition. We have input parameters and output / return parameters\
 **Function arguments** are the real values passed into the function when calling it
+
+- Basic Functions
 ```go
 // basic syntax
 func <function_name>(<params>) <return_value_types> { // function signature
@@ -384,22 +386,173 @@ func addNumbers(a int, b int) int {
 addNumbers(3, 4)
 sum := addNumbers(3, 4)
 
+// returning multiple values
+func operation(a int, b int) (int, int) {
+    sum := a+b
+    diff := a-b
+    return sum, diff    
+}
+
+func operation(a int, b int) (sum int, diff int) { // return parameters can be given names
+    sum = a+b // omit ":", already declared in arguments
+    diff = a-b
+    return // this way, no need to specify them here again
+}
+
+sum, diff := operation(5, 3)
+_, diff := operation(5, 3) // stores only diff, omits sum
+sum, _ := operation(5, 3) // stores only sum, omits diff
 ```
+#### Other function types
+- Variadic Functions
+  - Accepts variable number of arguments of same type
+  - To declare: the type of the final parameter is preceded by an ellipsis "..."
+```go
+// basic syntax
+func <func_name>(param_1 type, param_2 type, param_3 ...type) <return_type> {} // function can be called with any number of parameters of <return_type>
 
+func sumNumbers(numbers ...int) int {} // numbers variable will contain a slice of all the arguments
+func sumNumbers(str string, numbers ...int) {}
+```
+- Recursive Functions
+  - Recursion is a concept where a function calls itself by direct or indirect means
+  - Keeps calling itself until it reaches a base case
+  - Used to solve a problem, where the solution is dependent on the smaller instance of the same problem
+```go
+func factorial(i int) int {
+    if i == 1 { return 1 }
+    return i * factorial(i-1) // function keeps returning until it reaches i == 1
+}
+fact := factorial(5) // 5*4*3*2*1 = 120
+```
+- Anonymous Functions
+  - Is a function that is declared without any declared identifier to reference it
+  - Used for containing functionality that does not need to be named and is possibly only for short term use
+```go
+x := func(l int, b int) int {
+    return l*b
+}
+fmt.Printf("%T", x) // type: func(int, int) int
+fmt.Println(x(20, 30)) // 600
 
+x := func(l int, b int) int {
+    return l*b
+}(20, 30) // directly calls anonymous function
 
+fmt.Printf("%T", x) // int, because x stores the result this time
+fmt.Println(x(20, 30)) // 600
+```
+- High Order Functions
+  - Function that receives a functions as an input or returns it as an output
+  - Compositions: Create smaller functions that take care of certain parts of logic and then compose complex functions out of them
+  - Reduced bugs (easier debugging through modularity)
+  - Easy to read and understand → better code
+```go
+# circle properties
+func area(r float64) {
+    return 3.14 * r * r
+}
 
+func perimeter(r float64) {
+    return 2 * 3.14 * r
+}
 
+func diameter(r float64) {
+    return 2 * r
+}
 
+func print(radius float64, calcFunction func(r float64) float64) {
+    result := calcFunction(radius)
+    fmt.Println("Result: ", result)
+}
 
+func getFunction(query int) func(r float64) float64 {
+    query_to_func := map[int]func(r float64) float64 {
+        1: area,
+        2: perimeter,
+        3: diameter
+    }
+    return query_to_func[query]
+}
 
+func main() {
+    var query int
+    var radius float64
+    
+    fmt.Printl("Enter radius:")
+    fmt.Scanf("%f", &radius)
+    fmt.Printf("Enter \n 1 - area \n 2 - perimeter \n 3 - diameter")
+    fmt.Scanf("%d", &query)
+    
+    print(radius, getFunction(query))
+}
+```
+- Defer Statement
+  - delays execution of a function, until surrounding function returns
+  - deferred call's arguments are evaluated immediately, but the function call is not executed until the surrounding function returns
+  - basically, the next function in the control flow is executed before the deferred function
 
+### Pointers
+- Used for memory management (RAM) in programs
+- For every variable that is declared, a certain amount of memory is allocated at runtime
+- A pointer is a variable that holds the memory address of another variable
+- The most used operators with pointers are:
+  - **Address-of Operator (&)**: the address of a variable can be obtained with the `&` operator, it is in hex
+  - **Dereference Operator (*)**: when placed before an address, it returns the value at that address
+```go
+/* quick note
+x := 77         // value of x
+&x = 0x0301     // address of x
+*0x0301 = 77    // value at the address
+*/
 
+// variable is declared and receives an address
+x := 1 // address is i.e. 0x0301
 
+// now we can init a pointer, that points on the memory address, where x is stored
+var ptr *int := &x // value of ptr is 0x0301; must be of type int because the underlying memory block is allocated based on the size of int
 
+// example
+package main
 
+import fmt
 
+func main() {
+    i := 10
+    fmt.Printf("%T %v\n", &i, &i)       // this would fetch us the address of i
+        // output: *int 0xc00018c008
+    fmt.Printf("%T %v\n", *(&i), *(&i)) // we can then dereference this address with the dereference operator 
+        // output: int 10
+}
+```
+- Declaring and Initializing Pointers
+```go
+// basic syntax
+var <pointer_name> *<data_type>         // option 1: the * is the convention to declare a pointer, it is not the same as the dereference operator!
+                                        // data_type regards the type of the variable whose address we want to store
+var <pointer_name> = &<variable_name>   // option 2: data_type will be internally determined by the compiler
+<pointer_name> := &<variable_name>      // option 3: usage with shorthand declaration operator
 
+// example
+i := 10
+s := "hello"
+f := 1.42
+var iptr *int = &i  // option 1
+var sptr = &s       // option 2, we initialize the value with the address of another variable 
+fptr := &f          // option 3
+```
+- Dereferencing a Pointer
+```go
+// basic syntax
+*<pointer_name>
+*<pointer_name> = <new_value> // assigns a new value to the address
+// when placing * before an address, we get the value stored at that address
+// since a pointer is also a variable that stores the address of a variable, we can use the * here to get the value at that address
+
+x := 77
+var iptr *int := &i
+*iptr = 100 // changes x to 100, address remains the same
+```
 
 
 
