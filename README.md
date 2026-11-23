@@ -1,6 +1,23 @@
 # go-lab
 
-## Conventions
+> Personal notes and code snippets while learning Go.
+
+## Contents
+
+1. [**Language Elements**](#language-elements)
+   1. [Data Types and Variables](#data-types-and-variables)
+   2. [Operators and Control Flow](#operators-and-control-flow)
+      - [Operators](#operators)
+      - [Control Flow](#control-flow)
+   3. [Arrays, Slices, and Maps](#arrays-slices-and-maps)
+   4. [Functions](#functions)
+      - [Basic Syntax](#basic-syntax)
+      - [Other function types](#other-function-types)
+   5. [Pointers](#pointers)
+
+---
+
+## Language Elements
 ### Data Types and Variables
 - Declaration
 ```go
