@@ -403,6 +403,7 @@ sum, diff := operation(5, 3)
 _, diff := operation(5, 3) // stores only diff, omits sum
 sum, _ := operation(5, 3) // stores only sum, omits diff
 ```
+
 #### Other function types
 - Variadic Functions
   - Accepts variable number of arguments of same type
@@ -553,18 +554,268 @@ x := 77
 var iptr *int := &i
 *iptr = 100 // changes x to 100, address remains the same
 ```
+- Passing by Value in Functions
+	- Function is called by directly passing the value of the variables as an argument: the parameter is copied into another location of the memory
+	- When accessing or modifying the variable within a function, only the copy is accessed or modified, the original value remains the same
+- Passing by Reference in Functions
+	- Here, the address of the variable is passed into the function as parameter
+	- All operations the function performs it thus on the value stored at the address of the actual parameter
+	- Slices and maps are passed by reference by default
+	- Arrays are not passed by reference but by value! Hence, the elements are copied one by one and the original array does not change when a copied element changes
+```go
+// basic variables
+func modify(s *string) {
+	*s = "world"
+}
 
+func main() {
+	a := "hello"
+	fmt.Println(a) 	// hello
+	modify(&a)		// here, the value that is stored under the address passed to the function is modified
+	fmt.Println(a) 	// world
+}
 
+// slices
+func modify(arr []int) {
+	arr[0] = 100
+}
 
+func main() {
+	slice := []int{10, 20, 30} // remember: slice itself is a reference to an underlying array
+	fmt.Println(slice) // 10 20 30 
+	modify(slice)
+	fmt.Println(slice) // 100 20 30
+}
 
+// maps
+func modify(m map[string]int) {
+	m["K"] = 75
+}
 
+func main() {
+	ascii := make(map[string]int)
+	ascii["A"] = 65
+	ascii["F"] = 70
+	fmt.Println(ascii) // map[A:65 F:70]
+	modify(ascii)
+	fmt.Println(ascii) // map[A:65 F:70 M:85]
+}
+```
 
+### Structs
+#### Initialization and Declaration
+- User defined data type that is a structure that groups together different data elements
+- Provide a way to reference a series of grouped values through a single variable / struct name
+```go
+// basic syntax init
+type <struct_name> struct { // type keyword means user defined type
+	// list of fields
+}
+// basic syntax declaration 
+var <variable_name> <struct_name>
+<variable_name> := new(<struct_name>) { // returns a pointer to the struct
+	<field_name>: <value>,
+	<field_name>: <value>, // must have , at the end of last field
+}
+// simplified (not recommended)
+<variable_name> := <struct_name>{<value_1>, <value_2>} // must be in order with initialization to be declared correctly
 
+// example
+package main
+import fmt
+import fmp
 
+// declaration
+type Student struct { 
+	name string
+	rollNo int
+	marks []int
+	grades map[string]int
+}
 
+func main() {
+	// initialization (once declared, can be initialized in a number of ways)
+	var s Student // creates a local instance of type Student with zero-value for its fields
+	fmt.Printf("%+v", s) // {name:  rollNo:0 marks:[] grades:map[]}
+	
+	stud := new(Student) // stud is a pointer of type student
+	fmt.Printf("%+v", stud) // &{name:  rollNo:0 marks:[] grades:map[]}
+}
+```
+- Accessing fields
+```go
+type Circle struct {
+	x int
+	y int
+	radius int
+}
 
+func main() {
+	var c Circle
+	c.x = 5
+	c.y = 5
+	c.radius = 9
 
+	circ := new(Circle) {
+		x: 5,
+		y: 5,
+		radius: 9,
+	}
+}
+```
+- Passing structs to Functions
+```go
+type Circle struct {
+	x int
+	y int
+	radius int
+	area float64
+}
 
+func calcArea(c *Circle) { // must be pointer! see below
+	const PI float64 = 3.14
+	var area float64
+	area = (PI * c.radius * c.radius)
+	(*c).area = area
+}
+
+func main() {
+	// must pass pointer! to change values of a struct, we must pass it by reference, otherwise it will be copied by value and the orig won't be changed
+	c := Circle(x:5, y:5, radius:9, area:0)
+	fmt.Printf("%+v", c)
+	calcArea(&c) // must pass address to struct!
+	fmt.Printf("%+v", c)
+	// {x:5 y:5 area:0}
+	// {x:5 y:5 area:254.34}
+}
+```
+- Comparing structs
+	- Same type or same values with equality operators
+	- Struct instances that are to be compared must be of same type!
+		- We cannot compare instances of `type s1 struct` with instances of `type s2 struct` on
+		- This however only only applies for the actual struct!
+```go 
+type s1 struct {
+	x int
+}
+
+type s2 struct {
+	x int
+}
+
+func main() {
+	c := s1{x: 5}
+	c1 := s2{x: 5}
+	if c == c1 { // invalid operations! c == c1 (mismatched types s1 and s2)
+		fmt.Println("yes") 
+	}
+	
+	c := s1{x: 5}
+	c1 := s1{x: 6}
+	c2 := s1{x: 5}
+	if c != c1 { // true
+		fmt.Println("c and c1 have different values") 
+	} 
+	if c == c2 { // true
+		fmt.Println("c is same as c2")
+	}
+}
+```
+
+#### Methods
+- Similar to function with one simple addition: a method augments a function by adding an extra parameter section immediately after the `func` keyword that accepts a single argument
+	- This is called a `receiver`
+	- A receiver is something that a method is associated with: whenever there is a strong relationship between a function and a struct, it makes sense to use a method
+- Hence: a method is a function that has a defined receiver and can be associated with a named type
+- Faustregel: Braucht auch nur eine Methode einen Pointer-Receiver, nimm ihn für alle Methoden des Typs. Das ist Go-Konvention und vermeidet eine Falle bei Interfaces.
+```go
+// basic syntax
+func (<receiver>) <method_name> (<parameters>) <return_type> {
+	// code
+}
+
+// any instance of the circle struct will have the methods declared below
+type Circle struct {
+	radius float64
+	area   float64
+}
+
+// for methods, there is also a difference if we use references or values as receivers:
+// - if the receiver is a pointer, we work on the original struct
+// - if the receiver is a value, we work on a copy of the original struct and may need to return a value
+
+// pointer receiver: modifies the original struct
+func (c *Circle) calcArea() {
+	c.area = 3.14 * c.radius * c.radius
+}
+
+// value receiver: only reads the struct and returns a result,
+// the original stays untouched -> ideal for getters / calculations
+func (c Circle) circumference() float64 {
+	return 2 * 3.14 * c.radius
+}
+
+// value receiver that tries to modify: only the copy is changed!
+func (c Circle) scale(factor float64) {
+	c.radius = c.radius * factor // no effect on the caller
+}
+
+// fix: return the modified copy instead
+func (c Circle) scaled(factor float64) Circle {
+	c.radius = c.radius * factor
+	return c
+}
+
+func main() {
+	c := Circle{radius: 5}
+
+	c.calcArea()
+	fmt.Printf("%+v\n", c) // {radius:5 area:78.5}
+
+	fmt.Println(c.circumference()) // 31.4
+
+	c.scale(2)
+	fmt.Printf("%+v\n", c) // {radius:5 area:78.5} -> unchanged!
+
+	big := c.scaled(2)
+	fmt.Printf("%+v\n", big) // {radius:10 area:78.5} -> area is stale now
+}
+```
+##### Value or pointer receiver?
+
+| Use a pointer receiver `(c *T)` when... | Use a value receiver `(c T)` when... |
+|---|---|
+| the method needs to modify the struct | the method only reads the struct |
+| the struct is large (copying would be expensive) | the struct is small and immutable (e.g. `time.Time`, coordinates) |
+| the struct contains something that must not be copied, e.g. `sync.Mutex` | the type should behave like a plain value |
+
+##### Pitfall: pointer receivers and interfaces
+- When calling a method, Go is forgiving: `c.calcArea()` works even though `c` is a `Circle` and not a `*Circle`. Go silently turns it into `(&c).calcArea()`
+- When assigning to an interface, this automatic conversion does not happen:
+	- An interface stores a *copy* of the value you put in
+	- A pointer method called on that copy would only change the copy, not your original `c`, which would be confusing
+	- So Go simply doesn't allow it and reports a compile error
+- Result:
+	- `*Circle` has all methods (value and pointer receivers)
+	- `Circle` only has the methods with value receivers
+```go
+type AreaCalculator interface {
+	calcArea()
+}
+
+func main() {
+	c := Circle{radius: 5}
+
+	c.calcArea() // ok: Go automatically uses &c
+
+	var a AreaCalculator = c  // compile error:
+	                          // Circle does not implement AreaCalculator
+	                          // (method calcArea has pointer receiver)
+
+	var b AreaCalculator = &c // ok: *Circle has all methods
+	b.calcArea()
+}
+```
 
 
 
