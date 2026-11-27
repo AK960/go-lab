@@ -2,23 +2,25 @@
 
 > Personal notes and code snippets while learning Go.
 
-## Contents
+## Notes
 
-1. [**Language Elements**](#language-elements)
-   1. [Data Types and Variables](#data-types-and-variables)
-   2. [Operators and Control Flow](#operators-and-control-flow)
-      - [Operators](#operators)
-      - [Control Flow](#control-flow)
-   3. [Arrays, Slices, and Maps](#arrays-slices-and-maps)
-   4. [Functions](#functions)
-      - [Basic Syntax](#basic-syntax)
-      - [Other function types](#other-function-types)
-   5. [Pointers](#pointers)
+1. [Data Types and Variables](#data-types-and-variables)
+2. [Operators and Control Flow](#operators-and-control-flow)
+   - [Operators](#operators)
+   - [Control Flow](#control-flow)
+3. [Arrays, Slices, and Maps](#arrays-slices-and-maps)
+4. [Functions](#functions)
+   - [Basic Syntax](#basic-syntax)
+   - [Other function types](#other-function-types)
+5. [Pointers](#pointers)
+6. [Structs](#structs)
+   - [Initialization and Declaration](#initialization-and-declaration)
+   - [Methods](#methods)
+      - [Value vs. Pointer Receiver](#value-vs-pointer-receiver)
+      - [Pitfall with Pointer Receivers and Interfaces](#pitfall-with-pointer-receivers-and-interfaces)
 
 ---
-
-## Language Elements
-### Data Types and Variables
+## Data Types and Variables
 - Declaration
 ```go
 // basic syntax
@@ -32,14 +34,14 @@ var f float32 = 1.2 // or float64
 var b bool = true
 
 // alternative declaration methods
-var ( 
+var (
 	s string = "foo"
 	i int = 123
 )
 var s,t string = "string1", "string2"
 s := "Hello World" // short variable assignment operator := - no need to use var or declare type
 
-/* 
+/*
 zero values (declared value without initializing it with a value, gets default value)
 bool    -> false
 int     -> 0
@@ -48,7 +50,7 @@ string  -> ""
 pointers / functions / interfaces / maps -> nil
 */
 
-// constants 
+// constants
 // - must be declared and initialized at the same time
 // - cannot use := operator
 const age = 12 // untyped
@@ -56,7 +58,7 @@ const name string = "Alex" // typed
 // it is not possible to reassign const values
 
 
-// visibility 
+// visibility
 func Format (...) ... // exported, can be used by other packages
 func magnitude (...) ... // not exported, only accessible within own package
 ```
@@ -86,12 +88,12 @@ func main () {
 	    %s - plain string
 	    %t - true or false
 	    %f - floating numbers
-	    %.2f - floating numbers up to 2 decimals        
+	    %.2f - floating numbers up to 2 decimals
     */
-	
+
 	// find type of variable:
 	fmt.Printf("Variable has value %v and is type of %T", user, user)
-	
+
 	// can also find type of value / literal
 	fmt.Printf("Type: %v \n", reflect.TypeOf(user))
 }
@@ -114,7 +116,7 @@ func main() {
 	var a string
 	var b int
 	fmt.Print("Enter a string and a number:\n")
-	count, err := fmt.Scanf("%s %d", &a, &b) 
+	count, err := fmt.Scanf("%s %d", &a, &b)
 	    // causes error when another string is pasted, b will be set to zero-value of an integer, thus 0
 	fmt.Println("count:", count)
 	fmt.Println("error:", err)
@@ -138,7 +140,7 @@ func main() {
 	var i int = 90
 	var f = float32(i)
 	fmt.Printf("%.2f\n", f)
-	
+
 	// string conversion with strconv
 	// int -> string with Itoa (returns string)
 	var j int = 10
@@ -154,15 +156,15 @@ func main() {
 }
 ```
 
-### Operators and Control Flow
-#### Operators
+## Operators and Control Flow
+### Operators
 There are five groups of operators:
 - Comparison
   - Compare operands and yield a boolean value
   - Allow values of the same type
   - Values: `==, !=, <, <=, >, >=`
 - Arithmetic
-  - Operations like add, subtract, divide, multiply, etc. 
+  - Operations like add, subtract, divide, multiply, etc.
   - Values: `+, -, *, /, %, ++, --`
 - Logical
   - Can be used to support control flow
@@ -175,7 +177,7 @@ There are five groups of operators:
   - Perform bit by bit operation
   - Values: `&, |, ^, >>, <<` (and, or, xor, right shift, left shift)
 
-#### Control Flow
+### Control Flow
 - if, else, and else if statement
 ```go
 // basic syntax
@@ -184,7 +186,7 @@ if (condition_0) { // Parentheses around conditions are optional
 } else if (condition_1) {
 	// exec if condition_1 == True
 	// can have n else if statements
-} else { 
+} else {
 	// exec if above condition_n == False
 }
 ```
@@ -229,7 +231,7 @@ for i <= 5 {
 }
 ```
 
-### Arrays, Slices, and Maps
+## Arrays, Slices, and Maps
 - Arrays
 	- Are a collection of similar data elements stored at contiguous memory locations. Each element has an address and the memory interval is the size of the element, i.e., 4 bytes for int.
 	- Fixed length, same datatype
@@ -302,11 +304,11 @@ fmt.Println(cap(slize)) // 8
 // appending elements to a slice with append()
 // if the underlying array is too small, a new one will be allocated under the hood with two times the capacity of the initial array
 func append(s []Type, vs ...Type) []Type // (slice of type, new elements) resulting Type of the function
-slice := append(slize, 10, 20, 30) 
+slice := append(slize, 10, 20, 30)
 
 // appending another_slice to a slice by using ...-Operator
 // the operator is used for variadic functions, that can take arbitrary number of arguments
-slice = append(alice, another_slize...) 
+slice = append(alice, another_slize...)
 
 // deleting from a slize by creating a new slize that does not contain the value to be deleted
 arr := [5]int{10, 20, 30, 40, 50}
@@ -318,7 +320,7 @@ new_slize := append(slice_1, slize_2...)
 // copying elements from one slize to another
 // if the slices are not of the same length, only the values that fit the dest_slice capacity will be copied
 func copy(dst, src []Type) int // returns int with the number of elements copied
-num := copy(dest_slice, src_slice) // must be of same datatype 
+num := copy(dest_slice, src_slice) // must be of same datatype
 ```
 - Maps
   - Unordered collection of key-value-pairs (associative arrays in python)
@@ -330,8 +332,8 @@ num := copy(dest_slice, src_slice) // must be of same datatype
 var <map_name> map[<key_type>]<value_type>
 var my_map map[string]int // creates a nil-map, when adding values to it we would get a runtime error because you cannot add elements to a nil map, must be initialized first:
 <map_name> := map[<key_type>]<value_type>{key-value-pairs}
-// declare with make function 
-<map_name> := (make(map[<key_type>]<value_type, <init_capacity>) 
+// declare with make function
+<map_name> := (make(map[<key_type>]<value_type, <init_capacity>)
 
 codes := map[string]string{"en": "English", "fr": "French"}
 
@@ -351,7 +353,7 @@ fmt.Println(value, found) // --> 0 false; zero is zero-value of int
 // adding items to a map by using a new index key and assigning a value to it
 codes["it"] = 3
 
-// updating values of a key 
+// updating values of a key
 codes["en"] = "British English"
 
 // delete key value pair
@@ -371,14 +373,14 @@ for key, value := range codes {
 codes = make(map[string]int)
 ```
 
-### Functions
+## Functions
 - Self-contained units of code which carry out a certain job
 - Help us to modularize code
 - Functions are reusable and help abstract inner implementations
 - Also known as method
 - It function does not necessarily return something - if not, no return type would be specified and no return-Statement would end the function
 
-#### Basic Syntax
+### Basic Syntax
 Naming convention:
 - must begin with a letter
 - can have any number of additional letters and symbols
@@ -407,7 +409,7 @@ sum := addNumbers(3, 4)
 func operation(a int, b int) (int, int) {
     sum := a+b
     diff := a-b
-    return sum, diff    
+    return sum, diff
 }
 
 func operation(a int, b int) (sum int, diff int) { // return parameters can be given names
@@ -421,7 +423,7 @@ _, diff := operation(5, 3) // stores only diff, omits sum
 sum, _ := operation(5, 3) // stores only sum, omits diff
 ```
 
-#### Other function types
+### Other function types
 - Variadic Functions
   - Accepts variable number of arguments of same type
   - To declare: the type of the final parameter is preceded by an ellipsis "..."
@@ -496,12 +498,12 @@ func getFunction(query int) func(r float64) float64 {
 func main() {
     var query int
     var radius float64
-    
+
     fmt.Printl("Enter radius:")
     fmt.Scanf("%f", &radius)
     fmt.Printf("Enter \n 1 - area \n 2 - perimeter \n 3 - diameter")
     fmt.Scanf("%d", &query)
-    
+
     print(radius, getFunction(query))
 }
 ```
@@ -510,7 +512,7 @@ func main() {
   - deferred call's arguments are evaluated immediately, but the function call is not executed until the surrounding function returns
   - basically, the next function in the control flow is executed before the deferred function
 
-### Pointers
+## Pointers
 - Used for memory management (RAM) in programs
 - For every variable that is declared, a certain amount of memory is allocated at runtime
 - A pointer is a variable that holds the memory address of another variable
@@ -539,7 +541,7 @@ func main() {
     i := 10
     fmt.Printf("%T %v\n", &i, &i)       // this would fetch us the address of i
         // output: *int 0xc00018c008
-    fmt.Printf("%T %v\n", *(&i), *(&i)) // we can then dereference this address with the dereference operator 
+    fmt.Printf("%T %v\n", *(&i), *(&i)) // we can then dereference this address with the dereference operator
         // output: int 10
 }
 ```
@@ -556,7 +558,7 @@ i := 10
 s := "hello"
 f := 1.42
 var iptr *int = &i  // option 1
-var sptr = &s       // option 2, we initialize the value with the address of another variable 
+var sptr = &s       // option 2, we initialize the value with the address of another variable
 fptr := &f          // option 3
 ```
 - Dereferencing a Pointer
@@ -599,7 +601,7 @@ func modify(arr []int) {
 
 func main() {
 	slice := []int{10, 20, 30} // remember: slice itself is a reference to an underlying array
-	fmt.Println(slice) // 10 20 30 
+	fmt.Println(slice) // 10 20 30
 	modify(slice)
 	fmt.Println(slice) // 100 20 30
 }
@@ -619,8 +621,8 @@ func main() {
 }
 ```
 
-### Structs
-#### Initialization and Declaration
+## Structs
+### Initialization and Declaration
 - User defined data type that is a structure that groups together different data elements
 - Provide a way to reference a series of grouped values through a single variable / struct name
 ```go
@@ -628,7 +630,7 @@ func main() {
 type <struct_name> struct { // type keyword means user defined type
 	// list of fields
 }
-// basic syntax declaration 
+// basic syntax declaration
 var <variable_name> <struct_name>
 <variable_name> := new(<struct_name>) { // returns a pointer to the struct
 	<field_name>: <value>,
@@ -643,7 +645,7 @@ import fmt
 import fmp
 
 // declaration
-type Student struct { 
+type Student struct {
 	name string
 	rollNo int
 	marks []int
@@ -654,7 +656,7 @@ func main() {
 	// initialization (once declared, can be initialized in a number of ways)
 	var s Student // creates a local instance of type Student with zero-value for its fields
 	fmt.Printf("%+v", s) // {name:  rollNo:0 marks:[] grades:map[]}
-	
+
 	stud := new(Student) // stud is a pointer of type student
 	fmt.Printf("%+v", stud) // &{name:  rollNo:0 marks:[] grades:map[]}
 }
@@ -711,7 +713,7 @@ func main() {
 	- Struct instances that are to be compared must be of same type!
 		- We cannot compare instances of `type s1 struct` with instances of `type s2 struct` on
 		- This however only only applies for the actual struct!
-```go 
+```go
 type s1 struct {
 	x int
 }
@@ -724,22 +726,22 @@ func main() {
 	c := s1{x: 5}
 	c1 := s2{x: 5}
 	if c == c1 { // invalid operations! c == c1 (mismatched types s1 and s2)
-		fmt.Println("yes") 
+		fmt.Println("yes")
 	}
-	
+
 	c := s1{x: 5}
 	c1 := s1{x: 6}
 	c2 := s1{x: 5}
 	if c != c1 { // true
-		fmt.Println("c and c1 have different values") 
-	} 
+		fmt.Println("c and c1 have different values")
+	}
 	if c == c2 { // true
 		fmt.Println("c is same as c2")
 	}
 }
 ```
 
-#### Methods
+### Methods
 - Similar to function with one simple addition: a method augments a function by adding an extra parameter section immediately after the `func` keyword that accepts a single argument
 	- This is called a `receiver`
 	- A receiver is something that a method is associated with: whenever there is a strong relationship between a function and a struct, it makes sense to use a method
@@ -762,8 +764,8 @@ type Circle struct {
 // - if the receiver is a value, we work on a copy of the original struct and may need to return a value
 
 // pointer receiver: modifies the original struct
-func (c *Circle) calcArea() {
-	c.area = 3.14 * c.radius * c.radius
+func (c *Circle) calcArea() {				// when using a pointer receiver, the instance of Circle, namely c, is modified to also hold the medthod now
+	c.area = 3.14 * c.radius * c.radius		// 
 }
 
 // value receiver: only reads the struct and returns a result,
@@ -798,7 +800,7 @@ func main() {
 	fmt.Printf("%+v\n", big) // {radius:10 area:78.5} -> area is stale now
 }
 ```
-##### Value or pointer receiver?
+#### Value or Pointer Receiver?
 
 | Use a pointer receiver `(c *T)` when... | Use a value receiver `(c T)` when... |
 |---|---|
@@ -806,7 +808,7 @@ func main() {
 | the struct is large (copying would be expensive) | the struct is small and immutable (e.g. `time.Time`, coordinates) |
 | the struct contains something that must not be copied, e.g. `sync.Mutex` | the type should behave like a plain value |
 
-##### Pitfall: pointer receivers and interfaces
+#### Pitfall with Pointer Receivers and Interfaces
 - When calling a method, Go is forgiving: `c.calcArea()` works even though `c` is a `Circle` and not a `*Circle`. Go silently turns it into `(&c).calcArea()`
 - When assigning to an interface, this automatic conversion does not happen:
 	- An interface stores a *copy* of the value you put in
@@ -834,6 +836,73 @@ func main() {
 }
 ```
 
+#### Method Sets
+- Set of methods that are available to a datatype, also structs
+- Used to encapsulate functionality
+- In the example, the methods `displayName` and `calcPercentage` constitue the **method set** of the `Student struct`
+```go
+package main
+import "fmt"
+
+type Student struct {
+	name string
+	grades []int
+}
+
+func (s *Student) displayName() {
+	fmt.Println(s.name)
+}
+
+func (s *Student) calcPercentag() {
+	sum := 0
+	for _, v := range s.grades {
+		sum += v
+	}
+	return float64(sum*100) / float64(len(s.grades)*100)
+}
+```
+
+#### Interfaces
+- Specifies a method set to allow for modularity in Go
+- Like a blueprint for a method set
+- Is defined such that it can be implemented by other types such as structs
+- Describe all the methods of a method set by providing the function signature for each method
+- Specify a set of methods but do not implement them
+- Interfaces are defined so they can be implemented by other types. A type (or struct) implements an interface by implementing all of its methods. Interfaces can be implemented through structures. 
+- Interfaces are implemented implicitly. There is no specific keyword to implement an interface.
+```go
+// basic syntax
+type <interface_name> interface {
+	// method signatures, only methods or method sets 
+}
+
+type FixedDeposit interface {
+	getInterestRate() float64
+	calcReturn() float64
+}
+```
+- To implement interfaces
+```go
+package main
+import "fmt"
+
+type shape interface {
+	area() float64
+	perimeter() float64
+}
+
+type square struct {
+	side float64
+}
+
+func (s square) area() float64 {
+	return s.side * s.side
+}
+
+func (s square) perimeter() float64 {
+	return 4 * s.side
+}
+```
 
 
 
@@ -847,7 +916,3 @@ func main() {
 
 
 
-
-
-
-	
